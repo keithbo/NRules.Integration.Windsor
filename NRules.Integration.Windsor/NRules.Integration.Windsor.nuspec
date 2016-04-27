@@ -5,7 +5,7 @@
     <version>$version$</version>
     <authors>Keith Bosacker</authors>
     <owners>Keith Bosacker</owners>
-    <licenseUrl>https://github.com/keithbo/NRules.Integration.Windsor/blob/master/LICENSE</licenseUrl>
+    <licenseUrl>https://github.com/keithbo/NRules.Integration.Windsor/blob/master/LICENSE.md</licenseUrl>
     <projectUrl>https://github.com/keithbo/NRules.Integration.Windsor</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <title>NRules.Integration.Windsor</title>
