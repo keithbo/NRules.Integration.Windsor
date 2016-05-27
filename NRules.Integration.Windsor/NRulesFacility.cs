@@ -17,6 +17,10 @@
 
         protected override void Init()
         {
+            Kernel.Register(Component.For<NRules.IDependencyResolver>()
+                                     .UsingFactoryMethod(k => new WindsorDependencyResolver(k), true)
+                                     .LifestyleSingleton());
+
             Kernel.Register(Component.For<IRuleRepository>().UsingFactoryMethod(k =>
             {
                 var r = new RuleRepository {Activator = new WindsorRuleActivator(Kernel)};
@@ -27,7 +31,7 @@
             Kernel.Register(Component.For<ISessionFactory>().UsingFactoryMethod(k =>
             {
                 var s = k.Resolve<IRuleRepository>().Compile();
-                s.DependencyResolver = new WindsorDependencyResolver(k);
+                s.DependencyResolver = k.Resolve<NRules.IDependencyResolver>();
                 return s;
             }));
             Kernel.Register(Component.For<ISession>().UsingFactoryMethod(k =>
