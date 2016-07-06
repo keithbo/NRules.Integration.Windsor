@@ -7,7 +7,6 @@ using System.Runtime.InteropServices;
 // associated with an assembly.
 [assembly: AssemblyTitle("NRules.Integration.Windsor")]
 [assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("NRules.Integration.Windsor")]
 [assembly: AssemblyCopyright("Copyright ©  2016")]
@@ -22,11 +21,13 @@ using System.Runtime.InteropServices;
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("5e52d368-11e7-479f-a41c-0caa506d752c")]
 
-[assembly: AssemblyVersion("0.1.0.0")]
-[assembly: AssemblyFileVersion("0.1.0.0")]
+[assembly: AssemblyVersion("1.0.0")]
+[assembly: AssemblyFileVersion("1.0.0")]
 
 #if DEBUG
-[assembly: AssemblyInformationalVersion("0.1.0-alpha")]
+[assembly: AssemblyInformationalVersion("1.0.0-alpha")]
+[assembly: AssemblyConfiguration("debug")]
 #else
-[assembly: AssemblyInformationalVersion("0.1.0")]
+[assembly: AssemblyInformationalVersion("1.0.0")]
+[assembly: AssemblyConfiguration("retail")]
 #endif
