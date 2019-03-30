@@ -16,7 +16,7 @@
     {
         private Action<IRuleLoadSpec> _loadSpecAction;
 
-        private readonly HashSet<Type> _knownRuleTypes = new HashSet<Type>();
+        internal readonly HashSet<Type> KnownRuleTypes = new HashSet<Type>();
 
         /// <summary>
         /// Provide a custom <see cref="IRuleLoadSpec"/> delegate to use during <see cref="RuleRepository"/> load.
@@ -70,15 +70,15 @@
             var type = handler.ComponentModel.Implementation;
             if (typeof(Rule).IsAssignableFrom(type))
             {
-                _knownRuleTypes.Add(type);
+                KnownRuleTypes.Add(type);
             }
         }
 
         private void OnLoadSpecAction(IRuleLoadSpec spec)
         {
-            if (_knownRuleTypes.Count > 0)
+            if (KnownRuleTypes.Count > 0)
             {
-                spec.From(_knownRuleTypes);
+                spec.From(KnownRuleTypes);
             }
         }
     }
