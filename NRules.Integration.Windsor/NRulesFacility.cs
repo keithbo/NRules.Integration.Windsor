@@ -37,25 +37,30 @@
         /// </summary>
         protected override void Init()
         {
-            Kernel.Register(Component.For<NRules.IDependencyResolver>()
-                                     .UsingFactoryMethod(k => new WindsorDependencyResolver(k), true)
-                                     .LifestyleSingleton());
-
-            Kernel.Register(Component.For<IRuleRepository>().UsingFactoryMethod(k =>
-            {
-                var r = new RuleRepository {Activator = new WindsorRuleActivator(Kernel)};
-                r.Load(_loadSpecAction ?? OnLoadSpecAction);
-
-                return r;
-            }).LifestyleSingleton());
-            Kernel.Register(Component.For<ISessionFactory>().UsingFactoryMethod(k =>
-            {
-                var s = k.Resolve<IRuleRepository>().Compile();
-                s.DependencyResolver = k.Resolve<NRules.IDependencyResolver>();
-                return s;
-            }));
-            Kernel.Register(Component.For<ISession>().UsingFactoryMethod(k =>
-                k.Resolve<ISessionFactory>().CreateSession()));
+            Kernel.Register(
+                Component.For<NRules.IDependencyResolver>()
+                    .UsingFactoryMethod(k => new WindsorDependencyResolver(k), true)
+                    .LifestyleSingleton(),
+                Component.For<IRuleActivator>()
+                    .UsingFactoryMethod(k => new WindsorRuleActivator(k), true)
+                    .LifestyleSingleton(),
+                Component.For<IRuleRepository>()
+                    .ImplementedBy<RuleRepository>()
+                    .OnCreate(r => ((RuleRepository)r).Load(_loadSpecAction ?? OnLoadSpecAction))
+                    .LifestyleSingleton(),
+                Component.For<ISessionFactory>()
+                    .UsingFactoryMethod(k =>
+                    {
+                        var r = k.Resolve<IRuleRepository>();
+                        var s = r.Compile();
+                        s.DependencyResolver = k.Resolve<NRules.IDependencyResolver>();
+                        k.ReleaseComponent(r);
+                        return s;
+                    })
+                    .LifestyleSingleton(),
+                Component.For<ISession>()
+                    .UsingFactoryMethod(k => k.Resolve<ISessionFactory>().CreateSession())
+            );
 
             Kernel.ComponentRegistered += OnComponentRegistered;
         }
