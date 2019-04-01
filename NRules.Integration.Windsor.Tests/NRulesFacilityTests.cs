@@ -3,7 +3,6 @@ namespace NRules.Integration.Windsor.Tests
     using System.Linq;
     using Castle.MicroKernel.Registration;
     using Castle.Windsor;
-    using NRules.Fluent.Dsl;
     using NRules.RuleModel;
     using Xunit;
 
@@ -18,7 +17,6 @@ namespace NRules.Integration.Windsor.Tests
                 container.Register(Component.For<InputOutputTestRule>());
 
                 var facility = (NRulesFacility)container.Kernel.GetFacilities().Single(f => f is NRulesFacility);
-
                 Assert.Contains(typeof(InputOutputTestRule), facility.KnownRuleTypes);
 
                 var ruleRepository = container.Resolve<IRuleRepository>();
@@ -39,10 +37,11 @@ namespace NRules.Integration.Windsor.Tests
         {
             using (var container = new WindsorContainer())
             {
-                container.AddFacility<NRulesFacility>();
+                container.AddFacility<NRulesFacility>(f => f.Use("Test", spec => { }));
                 container.Register(Component.For<InputOutputTestRule>());
 
-                container.RegisterNRules("Test", spec => { });
+                var facility = (NRulesFacility)container.Kernel.GetFacilities().Single(f => f is NRulesFacility);
+                Assert.Contains(typeof(InputOutputTestRule), facility.KnownRuleTypes);
 
                 var ruleRepository = container.Resolve<IRuleRepository>("TestRuleRepository");
                 Assert.NotNull(ruleRepository);
@@ -62,10 +61,11 @@ namespace NRules.Integration.Windsor.Tests
         {
             using (var container = new WindsorContainer())
             {
-                container.AddFacility<NRulesFacility>();
+                container.AddFacility<NRulesFacility>(f => f.Use("Test", spec => { spec.From(typeof(InputOutputTestRule)); }));
                 container.Register(Component.For<InputOutputTestRule>());
 
-                container.RegisterNRules("Test", spec => { spec.From(typeof(InputOutputTestRule)); });
+                var facility = (NRulesFacility)container.Kernel.GetFacilities().Single(f => f is NRulesFacility);
+                Assert.Contains(typeof(InputOutputTestRule), facility.KnownRuleTypes);
 
                 var ruleRepository = container.Resolve<IRuleRepository>("TestRuleRepository");
                 Assert.NotNull(ruleRepository);
@@ -77,24 +77,6 @@ namespace NRules.Integration.Windsor.Tests
                 session.Insert(new TestInput());
                 session.Fire();
                 Assert.Single(session.Query<TestOutput>().AsEnumerable());
-            }
-        }
-
-        public class InputOutputTestRule : Rule
-        {
-            /// <inheritdoc />
-            public override void Define()
-            {
-                When()
-                    .Match<TestInput>();
-
-                Then()
-                    .Do(ctx => Do(ctx));
-            }
-
-            public static void Do(IContext ctx)
-            {
-                ctx.Insert(new TestOutput());
             }
         }
     }

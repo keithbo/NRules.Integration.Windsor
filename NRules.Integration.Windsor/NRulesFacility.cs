@@ -14,22 +14,42 @@
     /// </summary>
     public class NRulesFacility : AbstractFacility
     {
+        private const string RuleRepositoryNameFormat = "{0}RuleRepository";
+        private const string SessionFactoryNameFormat = "{0}SessionFactory";
+        private const string SessionNameFormat = "{0}";
+
         private Action<IRuleLoadSpec> _loadSpecAction;
 
         internal readonly HashSet<Type> KnownRuleTypes = new HashSet<Type>();
+
+        internal readonly Dictionary<string, Action<IRuleLoadSpec>> NamedSpecs = new Dictionary<string, Action<IRuleLoadSpec>>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// Provide a custom <see cref="IRuleLoadSpec"/> delegate to use during <see cref="RuleRepository"/> load.
         /// </summary>
         /// <param name="specAction">configuration delegate</param>
-        public void UseLoadSpec(Action<IRuleLoadSpec> specAction)
+        public NRulesFacility Use(Action<IRuleLoadSpec> specAction)
         {
-            if (specAction == null)
+            _loadSpecAction = specAction ?? throw new ArgumentNullException(nameof(specAction));
+
+            return this;
+        }
+
+        /// <summary>
+        /// Provide a custom <see cref="IRuleLoadSpec"/> delegate to use during <see cref="RuleRepository"/> load.
+        /// </summary>
+        /// <param name="prefix"></param>
+        /// <param name="specAction">configuration delegate</param>
+        public NRulesFacility Use(string prefix, Action<IRuleLoadSpec> specAction)
+        {
+            if (specAction is null)
             {
-                throw new ArgumentNullException("specAction");
+                throw new ArgumentNullException(nameof(specAction));
             }
 
-            _loadSpecAction = specAction;
+            NamedSpecs.Add(prefix, specAction);
+
+            return this;
         }
 
         /// <summary>
@@ -43,10 +63,26 @@
                     .LifestyleSingleton(),
                 Component.For<IRuleActivator>()
                     .UsingFactoryMethod(k => new WindsorRuleActivator(k), true)
-                    .LifestyleSingleton(),
+                    .LifestyleSingleton()
+            );
+
+            Kernel.Register(
                 Component.For<IRuleRepository>()
-                    .ImplementedBy<RuleRepository>()
-                    .OnCreate(r => ((RuleRepository)r).Load(_loadSpecAction ?? OnLoadSpecAction))
+                    .UsingFactoryMethod(kernel =>
+                    {
+                        var repository = new RuleRepository();
+                        //repository.Activator = kernel.Resolve<IRuleActivator>();
+                        repository.Load(_loadSpecAction ?? OnLoadSpecAction);
+
+                        return repository;
+                    })
+                    //.ImplementedBy<RuleRepository>()
+                    //.OnCreate((kernel, r) =>
+                    //{
+                    //    var repository = (RuleRepository) r;
+                    //    repository.Activator = kernel.Resolve<IRuleActivator>();
+                    //    repository.Load(_loadSpecAction ?? OnLoadSpecAction);
+                    //})
                     .LifestyleSingleton(),
                 Component.For<ISessionFactory>()
                     .UsingFactoryMethod(k =>
@@ -62,8 +98,44 @@
                     .UsingFactoryMethod(k => k.Resolve<ISessionFactory>().CreateSession())
             );
 
+            foreach (var pair in NamedSpecs)
+            {
+                RegisterNamedSpec(pair.Key, pair.Value);
+            }
+
             Kernel.ComponentRegistered += OnComponentRegistered;
         }
+
+        internal void RegisterNamedSpec(string name, Action<IRuleLoadSpec> loadSpecAction)
+        {
+            Kernel.Register(
+                Component.For<IRuleRepository>().ImplementedBy<RuleRepository>()
+                    .OnCreate(r => ((RuleRepository)r).Load(loadSpecAction))
+                    .LifestyleSingleton()
+                    .Named(string.Format(RuleRepositoryNameFormat, name)),
+                Component.For<ISessionFactory>()
+                    .UsingFactoryMethod(k =>
+                    {
+                        var r = k.Resolve<IRuleRepository>(string.Format(RuleRepositoryNameFormat, name));
+                        var s = r.Compile();
+                        s.DependencyResolver = k.Resolve<NRules.IDependencyResolver>();
+                        k.ReleaseComponent(r);
+                        return s;
+                    })
+                    .LifestyleSingleton()
+                    .Named(string.Format(SessionFactoryNameFormat, name)),
+                Component.For<ISession>()
+                    .UsingFactoryMethod(k =>
+                    {
+                        var f = k.Resolve<ISessionFactory>(string.Format(SessionFactoryNameFormat, name));
+                        var s = f.CreateSession();
+                        k.ReleaseComponent(f);
+                        return s;
+                    })
+                    .Named(string.Format(SessionNameFormat, name))
+            );
+        }
+
 
         private void OnComponentRegistered(string key, IHandler handler)
         {
