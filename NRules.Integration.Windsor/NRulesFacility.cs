@@ -68,21 +68,8 @@
 
             Kernel.Register(
                 Component.For<IRuleRepository>()
-                    .UsingFactoryMethod(kernel =>
-                    {
-                        var repository = new RuleRepository();
-                        //repository.Activator = kernel.Resolve<IRuleActivator>();
-                        repository.Load(_loadSpecAction ?? OnLoadSpecAction);
-
-                        return repository;
-                    })
-                    //.ImplementedBy<RuleRepository>()
-                    //.OnCreate((kernel, r) =>
-                    //{
-                    //    var repository = (RuleRepository) r;
-                    //    repository.Activator = kernel.Resolve<IRuleActivator>();
-                    //    repository.Load(_loadSpecAction ?? OnLoadSpecAction);
-                    //})
+                    .ImplementedBy<RuleRepository>()
+                    .OnCreate((kernel, r) => ((RuleRepository)r).Load(_loadSpecAction ?? OnLoadSpecAction))
                     .LifestyleSingleton(),
                 Component.For<ISessionFactory>()
                     .UsingFactoryMethod(k =>
@@ -109,7 +96,8 @@
         internal void RegisterNamedSpec(string name, Action<IRuleLoadSpec> loadSpecAction)
         {
             Kernel.Register(
-                Component.For<IRuleRepository>().ImplementedBy<RuleRepository>()
+                Component.For<IRuleRepository>()
+                    .ImplementedBy<RuleRepository>()
                     .OnCreate(r => ((RuleRepository)r).Load(loadSpecAction))
                     .LifestyleSingleton()
                     .Named(string.Format(RuleRepositoryNameFormat, name)),
