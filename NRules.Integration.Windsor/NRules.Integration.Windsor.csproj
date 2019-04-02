@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net40</TargetFrameworks>
+    <TargetFrameworks>net45;netstandard1.6</TargetFrameworks>
     <Platforms>AnyCPU</Platforms>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <IncludeSource>True</IncludeSource>
@@ -15,24 +15,16 @@
     <Company />
     <Copyright>Copyright © 2019</Copyright>
     <Authors>Keith Bosacker</Authors>
-    <VersionPrefix>1.1.0</VersionPrefix>
+    <VersionPrefix>1.2.0</VersionPrefix>
     <PackageLicenseUrl>https://github.com/keithbo/NRules.Integration.Windsor/blob/master/LICENSE.md</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/keithbo/NRules.Integration.Windsor</PackageProjectUrl>
     <PackageTags>NRules Castle Windsor Integration</PackageTags>
     <AssemblyOriginatorKeyFile>.\SignKey.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net40'">
-    <DefineConstants>NET40;NETFULL</DefineConstants>
-  </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="Castle.Windsor">
-      <Version>3.3.0</Version>
-    </PackageReference>
-    <PackageReference Include="NRules">
-      <Version>0.4.3</Version>
-    </PackageReference>
+    <PackageReference Include="Castle.Windsor" Version="4.0.0" />
+    <PackageReference Include="NRules" Version="0.6.3" />
   </ItemGroup>
 
 </Project>

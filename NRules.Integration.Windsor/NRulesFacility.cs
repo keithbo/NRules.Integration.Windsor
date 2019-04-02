@@ -2,6 +2,9 @@
 {
     using System;
     using System.Collections.Generic;
+#if NETSTANDARD
+    using System.Reflection;
+#endif
     using Castle.MicroKernel;
     using Castle.MicroKernel.Facilities;
     using Castle.MicroKernel.Registration;
@@ -58,7 +61,7 @@
         protected override void Init()
         {
             Kernel.Register(
-                Component.For<NRules.IDependencyResolver>()
+                Component.For<NRules.Extensibility.IDependencyResolver>()
                     .UsingFactoryMethod(k => new WindsorDependencyResolver(k), true)
                     .LifestyleSingleton(),
                 Component.For<IRuleActivator>()
@@ -76,7 +79,7 @@
                     {
                         var r = k.Resolve<IRuleRepository>();
                         var s = r.Compile();
-                        s.DependencyResolver = k.Resolve<NRules.IDependencyResolver>();
+                        s.DependencyResolver = k.Resolve<NRules.Extensibility.IDependencyResolver>();
                         k.ReleaseComponent(r);
                         return s;
                     })
@@ -106,7 +109,7 @@
                     {
                         var r = k.Resolve<IRuleRepository>(string.Format(RuleRepositoryNameFormat, name));
                         var s = r.Compile();
-                        s.DependencyResolver = k.Resolve<NRules.IDependencyResolver>();
+                        s.DependencyResolver = k.Resolve<NRules.Extensibility.IDependencyResolver>();
                         k.ReleaseComponent(r);
                         return s;
                     })
@@ -128,7 +131,11 @@
         private void OnComponentRegistered(string key, IHandler handler)
         {
             var type = handler.ComponentModel.Implementation;
+#if NETSTANDARD
+            if (typeof(Rule).GetTypeInfo().IsAssignableFrom(type.GetTypeInfo()))
+#elif NETFRAMEWORK
             if (typeof(Rule).IsAssignableFrom(type))
+#endif
             {
                 KnownRuleTypes.Add(type);
             }
