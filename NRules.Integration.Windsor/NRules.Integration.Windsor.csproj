@@ -13,9 +13,9 @@
     <Description>Integration support for Castle Windsor in to NRules.</Description>
     <Product>NRules.Integration.Windsor</Product>
     <Company />
-    <Copyright>Copyright © 2016</Copyright>
+    <Copyright>Copyright © 2019</Copyright>
     <Authors>Keith Bosacker</Authors>
-    <VersionPrefix>1.0.0</VersionPrefix>
+    <VersionPrefix>1.1.0</VersionPrefix>
     <PackageLicenseUrl>https://github.com/keithbo/NRules.Integration.Windsor/blob/master/LICENSE.md</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/keithbo/NRules.Integration.Windsor</PackageProjectUrl>
     <PackageTags>NRules Castle Windsor Integration</PackageTags>
